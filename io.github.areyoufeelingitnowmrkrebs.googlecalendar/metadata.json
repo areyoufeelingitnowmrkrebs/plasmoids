@@ -1,0 +1,17 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Id": "io.github.areyoufeelingitnowmrkrebs.googlecalendar",
+        "Name": "Google Calendar Clock",
+        "Description": "Customizable digital clock that opens Google Calendar when clicked and sends event/reminder notifications to your desktop.",
+        "Icon": "/ui/icon.png",
+        "Category": "Date and Time",
+        "License": "GPL-2.0+"
+    },
+    "X-KDE-ParentApp": "org.kde.plasmashell",
+    "X-Plasma-API-Minimum-Version": "6.0",
+    "X-Plasma-Provides": [
+        "org.kde.plasma.time",
+        "org.kde.plasma.date"
+    ]
+}

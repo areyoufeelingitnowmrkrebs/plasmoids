@@ -1,0 +1,11 @@
+{
+    "KPlugin": {
+        "Name": "Simple Session Menu",
+        "Description": "Typing commands into krunner can get tedious",
+        "Icon": "plasmashell",
+        "Category": "Utilities",
+        "Id": "io.github.areyoufeelingitnowmrkrebs.seshmenu"
+    },
+    "KPackageStructure": "Plasma/Applet",
+    "X-Plasma-API-Minimum-Version": "6.0"
+}
