@@ -1,2 +1,8 @@
-# plasmoids
-My stash of custom KDE Plasma 6 widgets. All of these were made and tested on Arch.
+# Widgets for KDE Plasma
+My stash of custom KDE Plasma widgets. All of these were made and tested on Arch.
+
+### Screenshots
+
+### Installation
+
+### Notes
