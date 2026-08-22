@@ -39,6 +39,12 @@ PlasmoidItem {
             onClicked: sessionManagement.requestReboot(Sessions.SessionManagement.Skip)
         }
         PlasmaComponents.ItemDelegate {
+            text: "Hibernate"
+            Layout.fillWidth: true
+            visible: sessionManagement.canHibernate
+            onClicked: sessionManagement.hibernate()
+        }
+        PlasmaComponents.ItemDelegate {
             text: "Power"
             Layout.fillWidth: true
             onClicked: sessionManagement.requestShutdown(Sessions.SessionManagement.Skip)
