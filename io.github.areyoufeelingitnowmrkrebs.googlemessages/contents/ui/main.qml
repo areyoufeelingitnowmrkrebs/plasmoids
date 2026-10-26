@@ -6,10 +6,18 @@ import org.kde.plasma.plasmoid
 import org.kde.kirigami as Kirigami
 import org.kde.notification
 import org.kde.plasma.core as PlasmaCore
-import "../../../io.github.areyoufeelingitnowmrkrebs.googleaccount"
 PlasmoidItem {
     id: root
     Plasmoid.status: PlasmaCore.Types.ActiveStatus
+    Component.onCompleted: {
+        if (WebEngine.defaultProfile.storageName !== "Google") {
+            WebEngine.defaultProfile.storageName = "Google"
+            WebEngine.defaultProfile.offTheRecord = false
+            WebEngine.defaultProfile.isPushServiceEnabled = true
+            WebEngine.defaultProfile.persistentCookiesPolicy = WebEngineProfile.ForcePersistentCookies
+        }
+        webviewLoader.active = true
+    }
     compactRepresentation: Item {
         implicitWidth: Kirigami.Units.iconSizes.smallMedium
         implicitHeight: Kirigami.Units.iconSizes.smallMedium
@@ -67,7 +75,7 @@ PlasmoidItem {
         }
     }
     Connections {
-        target: Session.profile
+        target: WebEngine.defaultProfile
         function onPresentNotification(notification) {
             if (notification.origin.toString().indexOf("messages.google.com") !== -1) {
                 var nativeNotification = notificationComponent.createObject(root);
@@ -96,29 +104,34 @@ PlasmoidItem {
         Rectangle {
             anchors.fill: parent
             color: Kirigami.Theme.backgroundColor
-            WebEngineView {
-                id: webview
+            Loader {
+                id: webviewLoader
+                active: false
                 anchors.fill: parent
-                anchors.margins: 1
-                url: "https://messages.google.com/web"
-                profile: Session.profile
-                settings {
-                    javascriptCanAccessClipboard: true
-                    allowRunningInsecureContent: false
-                    accelerated2dCanvasEnabled: true
-                    webGLEnabled: true
-                    showScrollBars: false
-                }
-                onPermissionRequested: permission => {
-                    if (permission.permissionType === WebEnginePermission.PermissionType.Notifications) {
-                        permission.grant();
-                    } else {
-                        permission.deny();
+                sourceComponent: WebEngineView {
+                    id: webview
+                    anchors.fill: parent
+                    anchors.margins: 1
+                    url: "https://messages.google.com/web"
+                    profile: WebEngine.defaultProfile
+                    settings {
+                        javascriptCanAccessClipboard: true
+                        allowRunningInsecureContent: false
+                        accelerated2dCanvasEnabled: true
+                        webGLEnabled: true
+                        showScrollBars: false
                     }
-                }
-                onNewWindowRequested: request => {
-                    if (request.userInitiated) {
-                        Qt.openUrlExternally(request.requestedUrl);
+                    onPermissionRequested: permission => {
+                        if (permission.permissionType === WebEnginePermission.PermissionType.Notifications) {
+                            permission.grant();
+                        } else {
+                            permission.deny();
+                        }
+                    }
+                    onNewWindowRequested: request => {
+                        if (request.userInitiated) {
+                            Qt.openUrlExternally(request.requestedUrl);
+                        }
                     }
                 }
             }

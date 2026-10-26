@@ -6,10 +6,18 @@ import org.kde.plasma.plasmoid
 import org.kde.kirigami as Kirigami
 import org.kde.notification
 import org.kde.plasma.core as PlasmaCore
-import "../../../io.github.areyoufeelingitnowmrkrebs.googleaccount"
 PlasmoidItem {
     id: root
     Plasmoid.status: PlasmaCore.Types.ActiveStatus
+    Component.onCompleted: {
+        if (WebEngine.defaultProfile.storageName !== "Google") {
+            WebEngine.defaultProfile.storageName = "Google"
+            WebEngine.defaultProfile.offTheRecord = false
+            WebEngine.defaultProfile.isPushServiceEnabled = true
+            WebEngine.defaultProfile.persistentCookiesPolicy = WebEngineProfile.ForcePersistentCookies
+        }
+        webviewLoader.active = true
+    }
     compactRepresentation: Item {
         implicitWidth: Kirigami.Units.iconSizes.smallMedium
         implicitHeight: Kirigami.Units.iconSizes.smallMedium
@@ -67,7 +75,7 @@ PlasmoidItem {
         }
     }
     Connections {
-        target: Session.profile
+        target: WebEngine.defaultProfile
         function onPresentNotification(notification) {
             if (notification.origin.toString().indexOf("mail.google.com") !== -1) {
                 var nativeNotification = notificationComponent.createObject(root);
@@ -96,40 +104,45 @@ PlasmoidItem {
         Rectangle {
             anchors.fill: parent
             color: Kirigami.Theme.backgroundColor
-            WebEngineView {
-                id: webview
+            Loader {
+                id: webviewLoader
+                active: false
                 anchors.fill: parent
-                anchors.margins: 1
-                url: "https://mail.google.com"
-                profile: Session.profile
-                settings {
-                    javascriptCanAccessClipboard: true
-                    allowRunningInsecureContent: false
-                    accelerated2dCanvasEnabled: true
-                    webGLEnabled: true
-                    showScrollBars: false
-                }
-                onPermissionRequested: permission => {
-                    if (permission.permissionType === WebEnginePermission.PermissionType.Notifications) {
-                        permission.grant();
-                    } else {
-                        permission.deny();
+                sourceComponent: WebEngineView {
+                    id: webview
+                    anchors.fill: parent
+                    anchors.margins: 1
+                    url: "https://mail.google.com"
+                    profile: WebEngine.defaultProfile
+                    settings {
+                        javascriptCanAccessClipboard: true
+                        allowRunningInsecureContent: false
+                        accelerated2dCanvasEnabled: true
+                        webGLEnabled: true
+                        showScrollBars: false
                     }
-                }
-                onNewWindowRequested: request => {
-                    var urlStr = request.requestedUrl.toString();
-                    if (urlStr.indexOf("mail.google.com") >= 0 && urlStr.indexOf("/popout") >= 0) {
-                        var match = urlStr.match(/th=(%23|#)([^&]+)/);
-                        if (match) {
-                            var threadId = decodeURIComponent(match[2]);
-                            var baseUrl = urlStr.split("/popout")[0];
-                            var newUrl = baseUrl + "/#inbox/" + threadId;
-                            webview.url = newUrl;
-                            return;
+                    onPermissionRequested: permission => {
+                        if (permission.permissionType === WebEnginePermission.PermissionType.Notifications) {
+                            permission.grant();
+                        } else {
+                            permission.deny();
                         }
                     }
-                    if (request.userInitiated) {
-                        Qt.openUrlExternally(request.requestedUrl);
+                    onNewWindowRequested: request => {
+                        var urlStr = request.requestedUrl.toString();
+                        if (urlStr.indexOf("mail.google.com") >= 0 && urlStr.indexOf("/popout") >= 0) {
+                            var match = urlStr.match(/th=(%23|#)([^&]+)/);
+                            if (match) {
+                                var threadId = decodeURIComponent(match[2]);
+                                var baseUrl = urlStr.split("/popout")[0];
+                                var newUrl = baseUrl + "/#inbox/" + threadId;
+                                webview.url = newUrl;
+                                return;
+                            }
+                        }
+                        if (request.userInitiated) {
+                            Qt.openUrlExternally(request.requestedUrl);
+                        }
                     }
                 }
             }

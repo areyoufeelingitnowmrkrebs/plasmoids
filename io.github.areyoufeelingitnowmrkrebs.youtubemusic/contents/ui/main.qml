@@ -5,10 +5,20 @@ import QtQuick.Layouts
 import org.kde.plasma.plasmoid
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.core as PlasmaCore
-import "../../../io.github.areyoufeelingitnowmrkrebs.googleaccount"
 PlasmoidItem {
     id: root
-    Plasmoid.status: webview.recentlyAudible ? PlasmaCore.Types.ActiveStatus : PlasmaCore.Types.PassiveStatus
+    Plasmoid.status: (webviewLoader.item && webviewLoader.item.recentlyAudible)
+    ? PlasmaCore.Types.ActiveStatus
+    : PlasmaCore.Types.PassiveStatus
+    Component.onCompleted: {
+        if (WebEngine.defaultProfile.storageName !== "Google") {
+            WebEngine.defaultProfile.storageName = "Google"
+            WebEngine.defaultProfile.offTheRecord = false
+            WebEngine.defaultProfile.isPushServiceEnabled = true
+            WebEngine.defaultProfile.persistentCookiesPolicy = WebEngineProfile.ForcePersistentCookies
+        }
+        webviewLoader.active = true
+    }
     compactRepresentation: Item {
         implicitWidth: Kirigami.Units.iconSizes.smallMedium
         implicitHeight: Kirigami.Units.iconSizes.smallMedium
@@ -58,24 +68,29 @@ PlasmoidItem {
         Rectangle {
             anchors.fill: parent
             color: Kirigami.Theme.backgroundColor
-            WebEngineView {
-                id: webview
+            Loader {
+                id: webviewLoader
+                active: false
                 anchors.fill: parent
-                anchors.margins: 1
-                url: "https://music.youtube.com"
-                profile: Session.profile
-                settings {
-                    allowRunningInsecureContent: false
-                    accelerated2dCanvasEnabled: true
-                    webGLEnabled: true
-                    showScrollBars: false
-                }
-                onPermissionRequested: permission => {
-                    permission.deny();
-                }
-                onNewWindowRequested: request => {
-                    if (request.userInitiated) {
-                        Qt.openUrlExternally(request.requestedUrl);
+                sourceComponent: WebEngineView {
+                    id: webview
+                    anchors.fill: parent
+                    anchors.margins: 1
+                    url: "https://music.youtube.com"
+                    profile: WebEngine.defaultProfile
+                    settings {
+                        allowRunningInsecureContent: false
+                        accelerated2dCanvasEnabled: true
+                        webGLEnabled: true
+                        showScrollBars: false
+                    }
+                    onPermissionRequested: permission => {
+                        permission.deny();
+                    }
+                    onNewWindowRequested: request => {
+                        if (request.userInitiated) {
+                            Qt.openUrlExternally(request.requestedUrl);
+                        }
                     }
                 }
             }
