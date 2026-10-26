@@ -7,90 +7,125 @@ import org.kde.kirigami as Kirigami
 import org.kde.plasma.core as PlasmaCore
 PlasmoidItem {
     id: root
-    Plasmoid.status: (webviewLoader.item && webviewLoader.item.recentlyAudible)
+    Plasmoid.status: (fullRepresentationItem && fullRepresentationItem.isAudible)
     ? PlasmaCore.Types.ActiveStatus
     : PlasmaCore.Types.PassiveStatus
     Component.onCompleted: {
-        if (WebEngine.defaultProfile.storageName !== "Google") {
-            WebEngine.defaultProfile.storageName = "Google"
-            WebEngine.defaultProfile.offTheRecord = false
-            WebEngine.defaultProfile.isPushServiceEnabled = true
-            WebEngine.defaultProfile.persistentCookiesPolicy = WebEngineProfile.ForcePersistentCookies
-        }
-        webviewLoader.active = true
+        root.fullRepresentationItem
     }
-    compactRepresentation: Item {
+    compactRepresentation: MouseArea {
+        id: compactRoot
         implicitWidth: Kirigami.Units.iconSizes.smallMedium
         implicitHeight: Kirigami.Units.iconSizes.smallMedium
         Layout.minimumWidth: Kirigami.Units.iconSizes.smallMedium
         Layout.minimumHeight: Kirigami.Units.iconSizes.smallMedium
+        hoverEnabled: true
+        onClicked: root.expanded = !root.expanded
         Kirigami.Icon {
             anchors.fill: parent
             source: "youtube-music-tray"
-        }
-        MouseArea {
-            anchors.fill: parent
-            hoverEnabled: true
-            onClicked: {
-                let node = root.parent;
-                while (node) {
-                    if (typeof node.expanded !== "undefined" && node !== root) {
-                        node.expanded = false;
-                    }
-                    node = node.parent;
-                }
-                if (musicWindow.visible) {
-                    musicWindow.hide()
-                } else {
-                    musicWindow.showMaximized()
-                    musicWindow.raise()
-                    musicWindow.requestActivate()
-                }
-            }
+            active: compactRoot.containsMouse
         }
     }
-    fullRepresentation: Item {}
-    Window {
-        id: musicWindow
-        width: 1200
-        height: 800
-        title: "YouTube Music"
-        transientParent: null
-        onClosing: (closeEvent) => {
-            closeEvent.accepted = false
-            musicWindow.hide()
+    fullRepresentation: Rectangle {
+        id: musicRoot
+        color: Kirigami.Theme.backgroundColor
+        property bool isAudible: webviewLoader.item ? webviewLoader.item.recentlyAudible : false
+        property Item trayRootItem: null
+        property int savedTrayW: 0
+        property int savedTrayH: 0
+        property bool isActiveInPopup: false
+        function findTrayRootItem() {
+            let node = musicRoot.parent;
+            let lastItem = null;
+            while (node) {
+                if (node.Layout !== undefined) {
+                    lastItem = node;
+                }
+                node = node.parent;
+            }
+            return lastItem;
         }
-        onVisibilityChanged: {
-            if (visibility === Window.Minimized) {
-                musicWindow.hide()
+        function setPopupSize(win, w, h) {
+            if (trayRootItem) {
+                trayRootItem.Layout.preferredWidth = w;
+                trayRootItem.Layout.preferredHeight = h;
+            }
+            win.width = w;
+            win.height = h;
+        }
+        function onOpen() {
+            if (!root.expanded || !musicRoot.visible || isActiveInPopup) return;
+            let win = musicRoot.Window.window;
+            if (!win) return;
+            if (!trayRootItem) trayRootItem = findTrayRootItem();
+            savedTrayW = win.width;
+            savedTrayH = win.height;
+            isActiveInPopup = true;
+            if (Plasmoid.configuration.popupWidth > 0 && Plasmoid.configuration.popupHeight > 0) {
+                setPopupSize(win, Plasmoid.configuration.popupWidth, Plasmoid.configuration.popupHeight);
             }
         }
-        Rectangle {
+        function onClose() {
+            if (!isActiveInPopup) return;
+            isActiveInPopup = false;
+            let win = musicRoot.Window.window;
+            if (!win) return;
+            if (win.width > 100 && win.height > 100) {
+                Plasmoid.configuration.popupWidth = win.width;
+                Plasmoid.configuration.popupHeight = win.height;
+            }
+            if (savedTrayW > 100 && savedTrayH > 100) {
+                setPopupSize(win, savedTrayW, savedTrayH);
+            }
+        }
+        onVisibleChanged: {
+            if (visible && root.expanded) {
+                Qt.callLater(onOpen);
+            } else if (!visible && isActiveInPopup) {
+                onClose();
+            }
+        }
+        Connections {
+            target: root
+            function onExpandedChanged() {
+                if (root.expanded && musicRoot.visible) {
+                    Qt.callLater(musicRoot.onOpen);
+                } else if (!root.expanded && musicRoot.isActiveInPopup) {
+                    musicRoot.onClose();
+                }
+            }
+        }
+        Component.onCompleted: {
+            if (WebEngine.defaultProfile.storageName !== "Google") {
+                WebEngine.defaultProfile.storageName = "Google"
+                WebEngine.defaultProfile.offTheRecord = false
+                WebEngine.defaultProfile.isPushServiceEnabled = true
+                WebEngine.defaultProfile.persistentCookiesPolicy = WebEngineProfile.ForcePersistentCookies
+            }
+            webviewLoader.active = true
+        }
+        Loader {
+            id: webviewLoader
+            active: false
             anchors.fill: parent
-            color: Kirigami.Theme.backgroundColor
-            Loader {
-                id: webviewLoader
-                active: false
+            sourceComponent: WebEngineView {
+                id: webview
                 anchors.fill: parent
-                sourceComponent: WebEngineView {
-                    id: webview
-                    anchors.fill: parent
-                    anchors.margins: 1
-                    url: "https://music.youtube.com"
-                    profile: WebEngine.defaultProfile
-                    settings {
-                        allowRunningInsecureContent: false
-                        accelerated2dCanvasEnabled: true
-                        webGLEnabled: true
-                        showScrollBars: false
-                    }
-                    onPermissionRequested: permission => {
-                        permission.deny();
-                    }
-                    onNewWindowRequested: request => {
-                        if (request.userInitiated) {
-                            Qt.openUrlExternally(request.requestedUrl);
-                        }
+                url: "https://music.youtube.com"
+                profile: WebEngine.defaultProfile
+                settings {
+                    allowRunningInsecureContent: false
+                    accelerated2dCanvasEnabled: true
+                    webGLEnabled: true
+                    showScrollBars: false
+                }
+                onPermissionRequested: permission => {
+                    permission.deny();
+                }
+                onNewWindowRequested: request => {
+                    if (request.userInitiated) {
+                        Qt.openUrlExternally(request.requestedUrl);
                     }
                 }
             }

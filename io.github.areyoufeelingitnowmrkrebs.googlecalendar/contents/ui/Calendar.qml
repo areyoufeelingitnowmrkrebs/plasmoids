@@ -1,16 +1,19 @@
 import QtQuick
-import QtQuick.Window
 import QtQuick.Layouts
 import QtWebEngine
 import org.kde.plasma.plasmoid
 import org.kde.kirigami as Kirigami
 import org.kde.notification
-Window {
-    id: calendarWindow
-    width: 1200
-    height: 800
-    title: "Google Calendar"
-    transientParent: null
+Rectangle {
+    id: calendarRoot
+    property PlasmoidItem plasmoidItem
+    implicitWidth: 1200
+    implicitHeight: 800
+    Layout.minimumWidth: Kirigami.Units.gridUnit * 25
+    Layout.minimumHeight: Kirigami.Units.gridUnit * 20
+    Layout.preferredWidth: 1200
+    Layout.preferredHeight: 800
+    color: Kirigami.Theme.backgroundColor
     Component.onCompleted: {
         if (WebEngine.defaultProfile.storageName !== "Google") {
             WebEngine.defaultProfile.storageName = "Google"
@@ -19,15 +22,6 @@ Window {
             WebEngine.defaultProfile.persistentCookiesPolicy = WebEngineProfile.ForcePersistentCookies
         }
         webviewLoader.active = true
-    }
-    onClosing: (closeEvent) => {
-        closeEvent.accepted = false
-        calendarWindow.hide()
-    }
-    onVisibilityChanged: {
-        if (visibility === Window.Minimized) {
-            calendarWindow.hide()
-        }
     }
     Component {
         id: notificationComponent
@@ -43,9 +37,9 @@ Window {
                     id: openAction
                     label: "Open"
                     onActivated: {
-                        calendarWindow.showMaximized()
-                        calendarWindow.raise()
-                        calendarWindow.requestActivate()
+                        if (calendarRoot.plasmoidItem) {
+                            calendarRoot.plasmoidItem.expanded = true
+                        }
                         if (internalNotification.webNotification) {
                             internalNotification.webNotification.click()
                         }
@@ -58,7 +52,7 @@ Window {
         target: WebEngine.defaultProfile
         function onPresentNotification(notification) {
             if (notification.origin.toString().indexOf("calendar.google.com") !== -1) {
-                var nativeNotification = notificationComponent.createObject(calendarWindow);
+                var nativeNotification = notificationComponent.createObject(calendarRoot);
                 nativeNotification.title = notification.title;
                 nativeNotification.text = notification.message;
                 nativeNotification.webNotification = notification;
@@ -66,36 +60,32 @@ Window {
             }
         }
     }
-    Rectangle {
+    Loader {
+        id: webviewLoader
+        active: false
         anchors.fill: parent
-        color: Kirigami.Theme.backgroundColor
-        Loader {
-            id: webviewLoader
-            active: false
+        sourceComponent: WebEngineView {
+            id: webview
             anchors.fill: parent
-            sourceComponent: WebEngineView {
-                id: webview
-                anchors.fill: parent
-                url: "https://calendar.google.com/r"
-                profile: WebEngine.defaultProfile
-                settings {
-                    javascriptCanAccessClipboard: true
-                    allowRunningInsecureContent: false
-                    accelerated2dCanvasEnabled: true
-                    webGLEnabled: true
-                    showScrollBars: false
+            url: "https://calendar.google.com/r"
+            profile: WebEngine.defaultProfile
+            settings {
+                javascriptCanAccessClipboard: true
+                allowRunningInsecureContent: false
+                accelerated2dCanvasEnabled: true
+                webGLEnabled: true
+                showScrollBars: false
+            }
+            onPermissionRequested: permission => {
+                if (permission.permissionType === WebEnginePermission.PermissionType.Notifications) {
+                    permission.grant();
+                } else {
+                    permission.deny();
                 }
-                onPermissionRequested: permission => {
-                    if (permission.permissionType === WebEnginePermission.PermissionType.Notifications) {
-                        permission.grant();
-                    } else {
-                        permission.deny();
-                    }
-                }
-                onNewWindowRequested: request => {
-                    if (request.userInitiated) {
-                        Qt.openUrlExternally(request.requestedUrl);
-                    }
+            }
+            onNewWindowRequested: request => {
+                if (request.userInitiated) {
+                    Qt.openUrlExternally(request.requestedUrl);
                 }
             }
         }
