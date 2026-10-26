@@ -27,9 +27,8 @@ PlasmoidItem {
             active: compactRoot.containsMouse
         }
     }
-    fullRepresentation: Rectangle {
+    fullRepresentation: Item {
         id: musicRoot
-        color: Kirigami.Theme.backgroundColor
         property bool isAudible: webviewLoader.item ? webviewLoader.item.recentlyAudible : false
         property Item trayRootItem: null
         property int savedTrayW: 0
@@ -114,6 +113,170 @@ PlasmoidItem {
                 anchors.fill: parent
                 url: "https://music.youtube.com"
                 profile: WebEngine.defaultProfile
+                backgroundColor: "transparent"
+                function injectThemeCss() {
+                    const css = `
+                    :root, html, body {
+                        --ytmusic-background: transparent !important;
+                        --ytmusic-general-background-a: transparent !important;
+                        --ytmusic-general-background-b: transparent !important;
+                        --ytmusic-general-background-c: transparent !important;
+                        --ytmusic-nav-bar: transparent !important;
+                        --ytmusic-player-bar-background: transparent !important;
+                        --yt-spec-base-background: transparent !important;
+                        --yt-spec-general-background-a: transparent !important;
+                        --yt-spec-general-background-b: transparent !important;
+                        --yt-spec-raised-background: transparent !important;
+                        --yt-spec-menu-background: rgba(35, 37, 40, 0.95) !important;
+                        background: transparent !important;
+                        background-color: transparent !important;
+                        height: 100vh !important;
+                        overflow: hidden !important;
+                    }
+                    ytmusic-app-layout > #content {
+                        position: fixed !important;
+                        top: 64px !important;
+                        left: 72px !important;
+                        right: 0 !important;
+                        bottom: 0 !important;
+                        height: calc(100vh - 64px) !important;
+                        overflow-y: auto !important;
+                        overflow-x: hidden !important;
+                        padding-top: 0 !important;
+                        margin-top: 0 !important;
+                        background: transparent !important;
+                        background-color: transparent !important;
+                    }
+                    #browse-page, ytmusic-search-page {
+                    padding-top: 8px !important;
+                    margin-top: 0 !important;
+                    }
+                    ytmusic-app,
+                    ytmusic-app-layout,
+                    #layout,
+                    #content,
+                    #browse-page,
+                    ytmusic-browse-response,
+                    #background-gradient,
+                    .background-gradient,
+                    .gradient-container,
+                    ytmusic-section-list-renderer,
+                    #contents.ytmusic-section-list-renderer,
+                    ytmusic-carousel-shelf-renderer,
+                    ytmusic-shelf-renderer,
+                    ytmusic-grid-renderer,
+                    ytmusic-tabbed-search-results-renderer,
+                    ytmusic-search-page,
+                    ytmusic-nav-bar,
+                    .center-content.ytmusic-nav-bar,
+                    .left-content.ytmusic-nav-bar,
+                    .right-content.ytmusic-nav-bar,
+                    #guide,
+                    #guide-wrapper,
+                    ytmusic-guide-renderer,
+                    #guide-content,
+                    ytmusic-guide-section-renderer,
+                    tp-yt-app-drawer,
+                    #contentContainer.tp-yt-app-drawer,
+                    ytmusic-chip-cloud-renderer,
+                    #chips.ytmusic-chip-cloud-renderer,
+                    ytmusic-header-renderer,
+                    ytmusic-immersive-header-renderer,
+                    ytmusic-visual-header-renderer,
+                    ytmusic-detail-header-renderer,
+                    ytmusic-carousel-shelf-basic-header-renderer,
+                    ytmusic-TwoRowItemRenderer {
+                        background: transparent !important;
+                        background-color: transparent !important;
+                        background-image: none !important;
+                        box-shadow: none !important;
+                        border: none !important;
+                    }
+                    ytmusic-app-layout::before, ytmusic-app-layout::after,
+                    ytmusic-browse-response::before, ytmusic-browse-response::after,
+                    ytmusic-section-list-renderer::before, ytmusic-section-list-renderer::after,
+                    ytmusic-immersive-header-renderer::before, ytmusic-immersive-header-renderer::after,
+                    #browse-page::before, #browse-page::after,
+                    #content::before, #content::after {
+                    background: transparent !important;
+                    background-color: transparent !important;
+                    background-image: none !important;
+                    box-shadow: none !important;
+                    content: none !important;
+                    }
+                    #background.ytmusic-app-layout,
+                    #nav-bar-background,
+                    #nav-bar-divider,
+                    #player-bar-background,
+                    ytmusic-fullbleed-thumbnail-renderer,
+                    #background-gradient.ytmusic-browse-response {
+                    display: none !important;
+                    }
+                    ytmusic-player-page,
+                    #player-page {
+                    background: rgba(15, 15, 18, 0.90) !important;
+                    }
+                    .content.ytmusic-player-page,
+                    #main-panel,
+                    .side-panel.ytmusic-player-page,
+                    ytmusic-tab-renderer,
+                    ytmusic-player-queue {
+                        background: transparent !important;
+                    }
+                    ytmusic-player-bar {
+                        background: rgba(40, 42, 45, 0.92) !important;
+                        border-radius: 20px !important;
+                        margin: 0 12px 10px 12px !important;
+                        width: calc(100% - 24px) !important;
+                        box-sizing: border-box !important;
+                        box-shadow: none !important;
+                    }
+                    ytmusic-search-box {
+                        background: transparent !important;
+                    }
+                    .search-box.ytmusic-search-box {
+                        background: rgba(40, 42, 45, 0.92) !important;
+                        border-radius: 24px !important;
+                        border: none !important;
+                    }
+                    `;
+                    const js = `
+                    (function() {
+                        let style = document.getElementById('plasma-ytm-style');
+                        if (!style) {
+                            style = document.createElement('style');
+                            style.id = 'plasma-ytm-style';
+                            document.head.appendChild(style);
+                        }
+                        style.textContent = ${JSON.stringify(css)};
+                        function cleanYtmBackgrounds() {
+                            const containers = document.querySelectorAll(
+                                'ytmusic-app, ytmusic-app-layout, #layout, #content, #browse-page, ' +
+                                'ytmusic-browse-response, ytmusic-section-list-renderer, #contents, ' +
+                                'ytmusic-carousel-shelf-renderer, ytmusic-shelf-renderer, ytmusic-grid-renderer, ' +
+                                'ytmusic-immersive-header-renderer, .background-gradient, .gradient-container, #background'
+                            );
+                            containers.forEach(el => {
+                                el.style.setProperty('background', 'transparent', 'important');
+                                el.style.setProperty('background-color', 'transparent', 'important');
+                                el.style.setProperty('background-image', 'none', 'important');
+                                el.style.setProperty('box-shadow', 'none', 'important');
+                            });
+                        }
+                        cleanYtmBackgrounds();
+                        if (!window._ytmPlasmaObserver) {
+                            window._ytmPlasmaObserver = new MutationObserver(() => cleanYtmBackgrounds());
+                            window._ytmPlasmaObserver.observe(document.body, { childList: true, subtree: true });
+                        }
+                    })();
+                    `;
+                    webview.runJavaScript(js);
+                }
+                onLoadingChanged: loadingInfo => {
+                    if (loadingInfo.status === WebEngineView.LoadSucceededStatus) {
+                        injectThemeCss();
+                    }
+                }
                 settings {
                     allowRunningInsecureContent: false
                     accelerated2dCanvasEnabled: true
