@@ -26,9 +26,8 @@ PlasmoidItem {
             active: compactRoot.containsMouse
         }
     }
-    fullRepresentation: Rectangle {
+    fullRepresentation: Item {
         id: mailRoot
-        color: Kirigami.Theme.backgroundColor
         property Item trayRootItem: null
         property int savedTrayW: 0
         property int savedTrayH: 0
@@ -147,6 +146,110 @@ PlasmoidItem {
                 anchors.fill: parent
                 url: "https://mail.google.com"
                 profile: WebEngine.defaultProfile
+                backgroundColor: "transparent"
+                function injectThemeCss() {
+                    const css = `
+                    html, body, .wl, .wF, .aAT, .aAU,
+                    .nH, .aeJ, .aeF, .Tm, .AO, .bkK, .bkL, .nn, .apV, .aUx,
+                    .aeN, .wT, .bAw, .aeH, .G-atb, .D, .E, .BltHke, .UI,
+                    #gb, header, [role="banner"], [role="navigation"], [role="main"],
+                    .aKh, .aAy, .aKk, .J-KU-Jg, .F, .Cp,
+                    tr.zA, tr.zA.zE, tr.zA.yO, tr.zA > td,
+                    ul.bqY, ul.bqY > li, .bqX,
+                    .if, .nH.if, .iY, .adn, .ads, .gs, .ii.gt, .a3s,
+                    .hi, .ha, .h7, .gE, .gA, .gt, .amn, .ams, .nr {
+                        background: transparent !important;
+                        background-color: transparent !important;
+                        background-image: none !important;
+                        box-shadow: none !important;
+                    }
+                    tr.zA::before, tr.zA::after,
+                    .G-atb::before, .G-atb::after,
+                    .aKh::before, .aKh::after,
+                    .aAy::before, .aAy::after {
+                        background: transparent !important;
+                        box-shadow: none !important;
+                    }
+                    tr.zA {
+                        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+                    }
+                    tr.zA:hover {
+                        background-color: rgba(255, 255, 255, 0.10) !important;
+                    }
+                    tr.zA.x7 {
+                        background-color: rgba(138, 180, 248, 0.20) !important;
+                    }
+                    .hP, .gD, .go, .g3, .g2, .hb, .ii.gt, .a3s {
+                        color: #e8eaed !important;
+                    }
+                    form[role="search"], .aso_search_form_anchor {
+                        background: rgba(32, 34, 38, 0.96) !important;
+                        background-color: rgba(32, 34, 38, 0.96) !important;
+                        border-radius: 24px !important;
+                        box-shadow: none !important;
+                    }
+                    form[role="search"] div,
+                        form[role="search"] table,
+                            form[role="search"] tbody,
+                                form[role="search"] tr,
+                                    form[role="search"] td,
+                                        .gstl_50, .gssb_c, .gssb_e, .gssb_m, .gssb_a, .gssb_a td {
+                                            background: rgba(32, 34, 38, 0.98) !important;
+                                            background-color: rgba(32, 34, 38, 0.98) !important;
+                                            color: #e8eaed !important;
+                                            border-color: rgba(255, 255, 255, 0.08) !important;
+                                            box-shadow: none !important;
+                                        }
+                                        .T-I-KE {
+                                            background-color: rgba(40, 42, 45, 0.92) !important;
+                                            color: #e8eaed !important;
+                                            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+                                        }
+                                        [role="dialog"], [role="menu"], [role="listbox"], .J-M, .aaZ, .M9, .nH.Hd, .AD {
+                                            background: rgba(32, 34, 38, 0.96) !important;
+                                            background-color: rgba(32, 34, 38, 0.96) !important;
+                                            color: #e8eaed !important;
+                                            border-radius: 16px !important;
+                                            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+                                        }
+                                        [role="dialog"] div,
+                                        [role="dialog"] table,
+                                        [role="dialog"] tbody,
+                                        [role="dialog"] tr,
+                                        [role="dialog"] td,
+                                        [role="dialog"] form,
+                                        [role="dialog"] input,
+                                        [role="dialog"] textarea,
+                                        [role="dialog"] span,
+                                        .M9 div, .M9 table, .M9 td, .Am {
+                                            background: transparent !important;
+                                            background-color: transparent !important;
+                                            color: #e8eaed !important;
+                                            border-color: rgba(255, 255, 255, 0.10) !important;
+                                            box-shadow: none !important;
+                                        }
+                                        [role="dialog"] .T-I.J-J5-Ji.aoO {
+                                            background-color: #0b57d0 !important;
+                                            color: #ffffff !important;
+                                            border-radius: 18px !important;
+                                        }
+                                        `;
+                                        const js = `
+                                        (function() {
+                                            if (!window._plasmaSheet) {
+                                                window._plasmaSheet = new CSSStyleSheet();
+                                                document.adoptedStyleSheets = [...document.adoptedStyleSheets, window._plasmaSheet];
+                                            }
+                                            window._plasmaSheet.replaceSync(${JSON.stringify(css)});
+                                        })();
+                                        `;
+                                        webview.runJavaScript(js);
+                }
+                onLoadingChanged: loadingInfo => {
+                    if (loadingInfo.status === WebEngineView.LoadSucceededStatus) {
+                        injectThemeCss();
+                    }
+                }
                 settings {
                     javascriptCanAccessClipboard: true
                     allowRunningInsecureContent: false
