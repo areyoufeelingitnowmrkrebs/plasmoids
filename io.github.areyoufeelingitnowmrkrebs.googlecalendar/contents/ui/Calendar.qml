@@ -73,9 +73,54 @@ Item {
                 const css = `
                 :root, html, body {
                     --gm3-sys-color-background: transparent !important;
+                    --gm3-sys-color-surface: transparent !important;
+                    --gm3-sys-color-surface-dim: transparent !important;
+                    --gm3-sys-color-surface-bright: transparent !important;
+                    --gm3-sys-color-surface-container: transparent !important;
+                    --gm3-sys-color-surface-container-low: transparent !important;
+                    --gm3-sys-color-surface-container-lowest: transparent !important;
+                    --gm3-sys-color-surface-container-high: transparent !important;
+                    --gm3-sys-color-surface-container-highest: transparent !important;
+                    --gm3-sys-color-surface-variant: transparent !important;
+                    --gm3-menu-surface-container-color: transparent !important;
+                    --gm3-select-shared-menu-container-color: transparent !important;
+                    --gm3-autocomplete-filled-text-field-container-color: rgba(0, 255, 0, 0.08) !important;
+                    --gm3-text-field-filled-container-color: rgba(0, 255, 0, 0.08) !important;
+                    --gm3-select-filled-text-field-container-color: rgba(0, 255, 0, 0.08) !important;
+                    --gm3-sys-color-on-background: #ffffff !important;
+                    --gm3-sys-color-on-surface: #ffffff !important;
+                    --gm3-sys-color-on-surface-variant: #ffffff !important;
+                    --gm3-sys-color-primary: #00ff00 !important;
+                    --gm3-sys-color-primary-container: rgba(0, 255, 0, 0.20) !important;
+                    --gm3-sys-color-on-primary: #ffffff !important;
+                    --gm3-sys-color-on-primary-container: #ffffff !important;
+                    --gm3-sys-color-secondary: #0000ff !important;
+                    --gm3-sys-color-secondary-container: rgba(0, 0, 255, 0.22) !important;
+                    --gm3-sys-color-on-secondary: #ffffff !important;
+                    --gm3-sys-color-on-secondary-container: #ffffff !important;
+                    --gm3-sys-color-tertiary: #ff0000 !important;
+                    --gm3-sys-color-tertiary-container: rgba(255, 0, 0, 0.20) !important;
+                    --gm3-sys-color-outline: transparent !important;
+                    --gm3-sys-color-outline-variant: transparent !important;
+                    --cal-sys-color-now-indicator: #ff0000 !important;
                     --dt-background: transparent !important;
+                    --dt-surface: transparent !important;
+                    --gm3-autocomplete-filled-menu-list-item-label-text-font: "Noto Sans", sans-serif !important;
+                    --gm3-autocomplete-outlined-menu-list-item-label-text-font: "Noto Sans", sans-serif !important;
+                    --gm3-autocomplete-outlined-text-field-input-text-font: "Noto Sans", sans-serif !important;
+                    --gm3-menu-list-item-label-text-font: "Noto Sans", sans-serif !important;
+                    --gm3-menu-list-item-supporting-text-font: "Noto Sans", sans-serif !important;
+                    --gm3-menu-list-item-trailing-supporting-text-font: "Noto Sans", sans-serif !important;
+                    --gm3-menu-group-title-text-font: "Noto Sans", sans-serif !important;
                     background: transparent !important;
                     background-color: transparent !important;
+                }
+                body, input, textarea, select, button,
+                h1, h2, h3, h4, p, a, th, td,
+                span:not(.google-material-icons):not(.notranslate),
+                div:not(.google-material-icons):not(.notranslate) {
+                    font-family: "Noto Sans", sans-serif !important;
+                    color: #ffffff !important;
                 }
                 body > div,
                 header,
@@ -88,29 +133,80 @@ Item {
                 [role="row"],
                 [role="rowgroup"],
                 [role="gridcell"],
-                [role="columnheader"] {
-                    background-color: transparent !important;
-                    background-image: none !important;
-                }
-                [role="gridcell"],
                 [role="columnheader"],
-                [role="row"] {
-                    border-color: rgba(255, 255, 255, 0.12) !important;
-                }
-                [data-eventid],
-                [data-eventid] *,
-                [data-eventchip],
-                [data-eventchip] * {
-                    --gm3-sys-color-surface: #131314 !important;
-                    --dt-surface: #131314 !important;
-                }
+                [role="complementary"],
                 [role="dialog"],
                 [role="menu"],
                 [role="listbox"],
-                [data-modal="true"] {
-                    background-color: rgba(32, 34, 38, 0.96) !important;
-                    border-radius: 16px !important;
-                    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+                [data-modal="true"],
+                .eU5T0b, .tEhMVd, .pSp5K, .KKOvEb, .SGWAac, .lYYbjc, .K2fuAf, .RAaXne,
+                .QQYuzf, .YO50ue, .LXjtcc, .hEtGGf, .dOqRGf, .tB5Jxf-xl07Ob-XxIAqe, .aqdrmf-rymPhb {
+                    background: transparent !important;
+                    background-color: transparent !important;
+                    background-image: none !important;
+                    box-shadow: none !important;
+                    border-color: transparent !important;
+                }
+                /* Strip Opaque Pseudo-Elements (including Drawer right-gradient .hEtGGf::after & shadows) */
+                .hEtGGf::before, .hEtGGf::after,
+                .MMvswb::before, .MMvswb::after,
+                .UTNHae::before, .UTNHae::after {
+                    background: transparent !important;
+                    background-color: transparent !important;
+                    background-image: none !important;
+                    box-shadow: none !important;
+                }
+                /* Create Button, Active View Switcher, Today Badge -> Translucent Green (#00ff00) */
+                div.dwlvNd.Hrn1mc,
+                button.t9Sj3d-BIzmGd,
+                button.gPr58d,
+                button.aOXrUc,
+                button.AeBiU-LgbsSe,
+                h2.F262Ye,
+                button.sOjuj[aria-label*="today" i] {
+                    background: rgba(0, 255, 0, 0.16) !important;
+                    background-color: rgba(0, 255, 0, 0.16) !important;
+                    box-shadow: none !important;
+                    border: none !important;
+                    color: #ffffff !important;
+                }
+                /* Search for People Box in Drawer */
+                div.J09ahd.TanRXd,
+                div.Fgl6fe-fmcmS-yrriRe {
+                    background: rgba(0, 255, 0, 0.08) !important;
+                    background-color: rgba(0, 255, 0, 0.08) !important;
+                    border-radius: 12px !important;
+                }
+                /* Event Chips -> High-Transparency Edgeless RGB */
+                [data-eventchip] > div,
+                div.KF4T6b {
+                    background: rgba(0, 0, 255, 0.22) !important;
+                    background-color: rgba(0, 0, 255, 0.22) !important;
+                    box-shadow: none !important;
+                    border: none !important;
+                    border-radius: 6px !important;
+                }
+                [data-eventchip]:hover > div,
+                div.KF4T6b:hover {
+                    background: rgba(0, 255, 0, 0.25) !important;
+                    background-color: rgba(0, 255, 0, 0.25) !important;
+                }
+                /* Event Chip Color Dots & Checkboxes -> Pure RGB (#ff0000 / #00ff00 / #0000ff) */
+                div.VlNR9e {
+                    border-color: #00ff00 !important;
+                }
+                span.CPXyj {
+                    background-color: #ff0000 !important;
+                }
+                div.KGC9Kd-YQoJzd {
+                    background-color: rgba(0, 255, 0, 0.30) !important;
+                    border-color: #00ff00 !important;
+                }
+                /* Menu Item Hover */
+                [role="menuitem"]:hover, [role="menuitemcheckbox"]:hover, [role="option"]:hover {
+                    background: rgba(0, 255, 0, 0.16) !important;
+                    background-color: rgba(0, 255, 0, 0.16) !important;
+                    border-radius: 8px !important;
                 }
                 `;
                 const js = `
@@ -122,39 +218,66 @@ Item {
                         document.head.appendChild(style);
                     }
                     style.textContent = ${JSON.stringify(css)};
-                    function cleanCalendarUI() {
-                        const allEls = document.querySelectorAll('div, main, header, aside, section');
-                        allEls.forEach(el => {
-                            if (el.closest('[role="dialog"], [role="menu"], [role="listbox"], [data-eventid], [data-eventchip], button, [role="button"]')) {
-                                return;
+
+                    let rafId = null;
+                    function updateCalendarMasks() {
+                        rafId = null;
+                        /* 1. Drawer Scroller Top Fade Behind Floating "Create" Button */
+                        const drawerScroller = document.querySelector('.hEtGGf.HDIIVe');
+                        if (drawerScroller) {
+                            const fade = 'linear-gradient(to bottom, transparent 0px, black 14px, black 100%)';
+                            drawerScroller.style.setProperty('-webkit-mask-image', fade, 'important');
+                            drawerScroller.style.setProperty('mask-image', fade, 'important');
+                        }
+
+                        /* 2. Dynamic 2D Cutout Mask on Calendar Grid & Drawer Behind Open Menus / Event Popovers / Create Button */
+                        const mainArea = document.querySelector('.SGWAac');
+                        if (mainArea) {
+                            const createBtn = document.querySelector('.dwlvNd.Hrn1mc');
+                            const popups = Array.from(document.querySelectorAll(
+                                '[role="dialog"], [role="menu"], [role="listbox"], [data-modal="true"]'
+                            )).filter(el => {
+                                const s = window.getComputedStyle(el);
+                                if (s.display === 'none' || s.visibility === 'hidden' || s.opacity === '0') return false;
+                                const r = el.getBoundingClientRect();
+                                return r.width > 15 && r.height > 15 && r.top < window.innerHeight && r.bottom > 0;
+                            });
+
+                            if (createBtn) {
+                                const cr = createBtn.getBoundingClientRect();
+                                if (cr.width > 15 && cr.height > 15) popups.push(createBtn);
                             }
-                            if (el.offsetWidth < 220 && el.offsetHeight < 90) {
-                                return;
+
+                            if (popups.length > 0) {
+                                const mr = mainArea.getBoundingClientRect();
+                                let rects = '';
+                                popups.forEach(el => {
+                                    const r = el.getBoundingClientRect();
+                                    const rad = parseFloat(window.getComputedStyle(el).borderRadius) || 16;
+                                    const x = r.left - mr.left - 4;
+                                    const y = r.top - mr.top - 4;
+                                    rects += \`<rect x="\${x}" y="\${y}" width="\${r.width + 8}" height="\${r.height + 8}" rx="\${rad}" ry="\${rad}" fill="black"/>\`;
+                                });
+                                const svg = \`<svg xmlns="http://www.w3.org/2000/svg" width="\${Math.max(1, mr.width)}" height="\${Math.max(1, mr.height)}"><defs><mask id="cm"><rect width="100%" height="100%" fill="white"/>\${rects}</mask></defs><rect width="100%" height="100%" fill="black" mask="url(#cm)"/></svg>\`;
+                                const url = \`url("data:image/svg+xml;utf8,\${encodeURIComponent(svg)}")\`;
+                                mainArea.style.setProperty('-webkit-mask-image', url, 'important');
+                                mainArea.style.setProperty('mask-image', url, 'important');
+                            } else {
+                                mainArea.style.removeProperty('-webkit-mask-image');
+                                mainArea.style.removeProperty('mask-image');
                             }
-                            if (el.offsetHeight <= 2 || el.offsetWidth <= 2) {
-                                return;
-                            }
-                            const computed = window.getComputedStyle(el);
-                            const bg = computed.backgroundColor;
-                            if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') {
-                                const match = bg.match(/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/);
-                                if (match) {
-                                    const r = parseInt(match[1]), g = parseInt(match[2]), b = parseInt(match[3]);
-                                    const maxDiff = Math.max(Math.abs(r - g), Math.abs(g - b), Math.abs(r - b));
-                                    if (maxDiff < 25) {
-                                        el.style.setProperty('background', 'transparent', 'important');
-                                        el.style.setProperty('background-color', 'transparent', 'important');
-                                        el.style.setProperty('background-image', 'none', 'important');
-                                        el.style.setProperty('box-shadow', 'none', 'important');
-                                    }
-                                }
-                            }
-                        });
+                        }
                     }
-                    cleanCalendarUI();
+
+                    function scheduleCalUpdate() {
+                        if (!rafId) rafId = requestAnimationFrame(updateCalendarMasks);
+                    }
+                    updateCalendarMasks();
                     if (!window._gcalPlasmaObserver) {
-                        window._gcalPlasmaObserver = new MutationObserver(() => cleanCalendarUI());
-                        window._gcalPlasmaObserver.observe(document.body, { childList: true, subtree: true });
+                        window._gcalPlasmaObserver = new MutationObserver(scheduleCalUpdate);
+                        window._gcalPlasmaObserver.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class', 'aria-expanded', 'aria-hidden'] });
+                        window.addEventListener('resize', scheduleCalUpdate);
+                        window.addEventListener('scroll', scheduleCalUpdate, true);
                     }
                 })();
                 `;
