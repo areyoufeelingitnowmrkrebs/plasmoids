@@ -32,6 +32,27 @@ PlasmoidItem {
         property int savedTrayW: 0
         property int savedTrayH: 0
         property bool isActiveInPopup: false
+
+        SystemPalette {
+            id: activePalette
+            colorGroup: SystemPalette.Active
+            onWindowTextChanged: if (webviewLoader.item) webviewLoader.item.injectThemeCss()
+            onHighlightChanged: if (webviewLoader.item) webviewLoader.item.injectThemeCss()
+        }
+        Item {
+            id: themeProbe
+            Kirigami.Theme.colorSet: Kirigami.Theme.Window
+            Kirigami.Theme.inherit: false
+            Connections {
+                target: themeProbe.Kirigami.Theme
+                function onTextColorChanged() { if (webviewLoader.item) webviewLoader.item.injectThemeCss() }
+                function onHighlightColorChanged() { if (webviewLoader.item) webviewLoader.item.injectThemeCss() }
+                function onLinkColorChanged() { if (webviewLoader.item) webviewLoader.item.injectThemeCss() }
+                function onVisitedLinkColorChanged() { if (webviewLoader.item) webviewLoader.item.injectThemeCss() }
+                function onDefaultFontChanged() { if (webviewLoader.item) webviewLoader.item.injectThemeCss() }
+            }
+        }
+
         function findTrayRootItem() {
             let node = messagesRoot.parent;
             let lastItem = null;
@@ -62,6 +83,7 @@ PlasmoidItem {
             if (Plasmoid.configuration.popupWidth > 0 && Plasmoid.configuration.popupHeight > 0) {
                 setPopupSize(win, Plasmoid.configuration.popupWidth, Plasmoid.configuration.popupHeight);
             }
+            if (webviewLoader.item) webviewLoader.item.injectThemeCss();
         }
         function onClose() {
             if (!isActiveInPopup) return;
@@ -147,55 +169,78 @@ PlasmoidItem {
                 url: "https://messages.google.com/web"
                 profile: WebEngine.defaultProfile
                 backgroundColor: "transparent"
+                function toRgbStr(c) {
+                    return `${Math.round(c.r * 255)}, ${Math.round(c.g * 255)}, ${Math.round(c.b * 255)}`;
+                }
                 function injectThemeCss() {
+                    const textColor = activePalette.windowText;
+                    const accentColor = activePalette.highlight;
+                    const secondaryColor = themeProbe.Kirigami.Theme.linkColor;
+                    const visitedColor = themeProbe.Kirigami.Theme.visitedLinkColor;
+                    const textHex = textColor.toString();
+                    const textRgb = toRgbStr(textColor);
+                    const accentHex = accentColor.toString();
+                    const accentRgb = toRgbStr(accentColor);
+                    const secondaryHex = secondaryColor.toString();
+                    const secondaryRgb = toRgbStr(secondaryColor);
+                    const visitedRgb = toRgbStr(visitedColor);
+                    const fontName = themeProbe.Kirigami.Theme.defaultFont.family;
                     const css = `
                     :root, body, .dark-theme {
+                        --plasma-text: ${textHex};
+                        --plasma-text-rgb: ${textRgb};
+                        --plasma-accent: ${accentHex};
+                        --plasma-accent-rgb: ${accentRgb};
+                        --plasma-secondary: ${secondaryHex};
+                        --plasma-secondary-rgb: ${secondaryRgb};
+                        --plasma-visited-rgb: ${visitedRgb};
+                        --plasma-font: "${fontName}", sans-serif;
                         --body-bg-color: transparent !important;
                         --dialog-bg-color: transparent !important;
                         --cdk-overlay-backdrop-bg-color: transparent !important;
                         --mat-app-background-color: transparent !important;
-                        --mat-app-text-color: #ffffff !important;
+                        --mat-app-text-color: var(--plasma-text) !important;
                         --mat-dialog-container-color: transparent !important;
                         --mat-menu-container-color: transparent !important;
                         --mat-menu-bg-color: transparent !important;
-                        --mat-menu-bg-color-hover: rgba(0, 255, 0, 0.16) !important;
-                        --mat-menu-color: #ffffff !important;
-                        --mat-menu-item-label-text-color: #ffffff !important;
-                        --mat-menu-item-icon-color: #00ff00 !important;
-                        --mat-menu-item-hover-state-layer-color: rgba(0, 255, 0, 0.16) !important;
-                        --mat-menu-item-focus-state-layer-color: rgba(0, 255, 0, 0.22) !important;
+                        --mat-menu-bg-color-hover: rgba(var(--plasma-accent-rgb), 0.16) !important;
+                        --mat-menu-color: var(--plasma-text) !important;
+                        --mat-menu-item-label-text-color: var(--plasma-text) !important;
+                        --mat-menu-item-icon-color: var(--plasma-accent) !important;
+                        --mat-menu-item-hover-state-layer-color: rgba(var(--plasma-accent-rgb), 0.16) !important;
+                        --mat-menu-item-focus-state-layer-color: rgba(var(--plasma-accent-rgb), 0.22) !important;
                         --mat-select-panel-background-color: transparent !important;
-                        --mat-option-label-text-color: #ffffff !important;
-                        --mat-option-selected-state-label-text-color: #00ff00 !important;
-                        --mat-option-hover-state-layer-color: rgba(0, 255, 0, 0.16) !important;
-                        --mat-option-selected-state-layer-color: rgba(0, 255, 0, 0.22) !important;
-                        --mat-focus-indicator-border-color: #00ff00 !important;
-                        --focus-ring-color: #00ff00 !important;
-                        --icon-button-color: #ffffff !important;
-                        --icon-button-disabled-color: rgba(255, 255, 255, 0.35) !important;
-                        --button-hover-bg-color: rgba(0, 255, 0, 0.14) !important;
-                        --mat-chip-bg-color: rgba(0, 0, 255, 0.16) !important;
-                        --mat-chip-color: #ffffff !important;
+                        --mat-option-label-text-color: var(--plasma-text) !important;
+                        --mat-option-selected-state-label-text-color: var(--plasma-accent) !important;
+                        --mat-option-hover-state-layer-color: rgba(var(--plasma-accent-rgb), 0.16) !important;
+                        --mat-option-selected-state-layer-color: rgba(var(--plasma-accent-rgb), 0.22) !important;
+                        --mat-focus-indicator-border-color: var(--plasma-accent) !important;
+                        --focus-ring-color: var(--plasma-accent) !important;
+                        --icon-button-color: var(--plasma-text) !important;
+                        --icon-button-disabled-color: rgba(var(--plasma-text-rgb), 0.35) !important;
+                        --button-hover-bg-color: rgba(var(--plasma-accent-rgb), 0.14) !important;
+                        --mat-chip-bg-color: rgba(var(--plasma-secondary-rgb), 0.16) !important;
+                        --mat-chip-color: var(--plasma-text) !important;
                         --mat-snackbar-bg-color: transparent !important;
-                        --mat-snackbar-color: #ffffff !important;
-                        --mat-snackbar-action-color: #00ff00 !important;
-                        --mat-slide-toggle-selected-track-color: rgba(0, 255, 0, 0.35) !important;
-                        --mat-slide-toggle-selected-handle-color: #00ff00 !important;
-                        --mdc-switch-on-track-color: rgba(0, 255, 0, 0.35) !important;
-                        --mdc-switch-on-handle-color: #00ff00 !important;
-                        --mat-progress-spinner-active-indicator-color: #00ff00 !important;
-                        --mention-pill-incoming-bg: rgba(0, 0, 255, 0.22) !important;
-                        --mention-pill-incoming-color: #ffffff !important;
-                        --mention-pill-outgoing-bg: rgba(0, 255, 0, 0.22) !important;
-                        --mention-pill-outgoing-color: #ffffff !important;
+                        --mat-snackbar-color: var(--plasma-text) !important;
+                        --mat-snackbar-action-color: var(--plasma-accent) !important;
+                        --mat-slide-toggle-selected-track-color: rgba(var(--plasma-accent-rgb), 0.35) !important;
+                        --mat-slide-toggle-selected-handle-color: var(--plasma-accent) !important;
+                        --mdc-switch-on-track-color: rgba(var(--plasma-accent-rgb), 0.35) !important;
+                        --mdc-switch-on-handle-color: var(--plasma-accent) !important;
+                        --mat-progress-spinner-active-indicator-color: var(--plasma-accent) !important;
+                        --mention-pill-incoming-bg: rgba(var(--plasma-secondary-rgb), 0.22) !important;
+                        --mention-pill-incoming-color: var(--plasma-text) !important;
+                        --mention-pill-outgoing-bg: rgba(var(--plasma-accent-rgb), 0.22) !important;
+                        --mention-pill-outgoing-color: var(--plasma-text) !important;
                     }
                     body, button, input, textarea, select,
-                    h1, h2, h3, h4, h5, h6, p, a,
+                    h1, h2, h3, h4, h5, h6, p, a, span, div,
                     .name, .snippet-text, .title, .input,
                     .mat-mdc-menu-item-text, .mdc-button__label, .fab-label,
                     mws-message-part-content, mws-conversation-snippet, mws-relative-timestamp {
-                        font-family: "Noto Sans", sans-serif !important;
-                        color: #ffffff !important;
+                        font-family: var(--plasma-font) !important;
+                        color: var(--plasma-text) !important;
                     }
                     html, body,
                     mw-app, mw-bootstrap, .main-stack, mw-g-ui-container,
@@ -209,7 +254,6 @@ PlasmoidItem {
                     .mat-mdc-menu-panel, .mat-mdc-menu-content,
                     .mat-mdc-dialog-container, .mdc-dialog__surface,
                     mws-picker-wrapper, mws-emoji-picker, mws-sticker-picker, mws-gif-picker {
-                        background: transparent !important;
                         background-color: transparent !important;
                         background-image: none !important;
                         box-shadow: none !important;
@@ -220,69 +264,71 @@ PlasmoidItem {
                     mws-message-compose::before, mws-message-compose::after,
                     .compose-transparent-wrapper::before, .compose-transparent-wrapper::after,
                     mw-main-nav::before, mw-main-nav::after {
-                        background: transparent !important;
                         background-color: transparent !important;
                         background-image: none !important;
                         box-shadow: none !important;
                         border: none !important;
                         content: none !important;
                     }
-                    /* Start Chat FAB - Edgeless Translucent Green */
+                    /* Start Chat FAB - Edgeless Translucent Accent */
                     a.mdc-button.fab, mw-fab-link a {
-                        background: rgba(0, 255, 0, 0.16) !important;
-                        background-color: rgba(0, 255, 0, 0.16) !important;
+                        background-color: rgba(var(--plasma-accent-rgb), 0.16) !important;
+                        background-image: none !important;
                         box-shadow: none !important;
                         border: none !important;
                     }
                     a.mdc-button.fab::after, a.mdc-button.fab::before,
                     a.mdc-button.fab .mdc-button__ripple::before,
                     a.mdc-button.fab .mdc-button__ripple::after {
-                        background: transparent !important;
+                        background-color: transparent !important;
+                        background-image: none !important;
                     }
                     .fab-icon, .fab-label, mws-icon {
-                        color: #ffffff !important;
-                        fill: #ffffff !important;
+                        color: var(--plasma-text) !important;
+                        fill: var(--plasma-text) !important;
                     }
                     /* Conversation List Selection & Hover */
                     a.list-item {
-                        background: transparent !important;
+                        background-color: transparent !important;
+                        background-image: none !important;
                         border-radius: 16px !important;
                     }
                     a.list-item:hover {
-                        background: rgba(0, 255, 0, 0.08) !important;
+                        background-color: rgba(var(--plasma-accent-rgb), 0.08) !important;
+                        background-image: none !important;
                     }
                     a.list-item.selected {
-                        background: rgba(0, 255, 0, 0.16) !important;
+                        background-color: rgba(var(--plasma-accent-rgb), 0.16) !important;
+                        background-image: none !important;
                     }
                     a.list-item.selected::after {
-                        background: #00ff00 !important;
+                        background-color: var(--plasma-accent) !important;
                     }
-                    /* Outgoing Message Bubbles -> Translucent Green (#00ff00) */
+                    /* Outgoing Message Bubbles -> Translucent Accent */
                     mws-message-part-content.outgoing,
                     mws-message-part-content.rcs-outgoing,
                     div.link-preview-container.outgoing {
-                        background: rgba(0, 255, 0, 0.16) !important;
-                        background-color: rgba(0, 255, 0, 0.16) !important;
+                        background-color: rgba(var(--plasma-accent-rgb), 0.16) !important;
                         background-image: none !important;
                         box-shadow: none !important;
                         border: none !important;
-                        color: #ffffff !important;
+                        color: var(--plasma-text) !important;
                     }
-                    /* Incoming Message Bubbles -> Translucent Blue (#0000ff) */
+                    /* Incoming Message Bubbles -> Translucent Secondary */
                     mws-message-part-content.incoming,
                     mws-message-part-content.rcs-incoming,
                     div.link-preview-container.incoming,
                     mws-link-preview-decorator {
-                        background: rgba(0, 0, 255, 0.18) !important;
-                        background-color: rgba(0, 0, 255, 0.18) !important;
+                        background-color: rgba(var(--plasma-secondary-rgb), 0.18) !important;
                         background-image: none !important;
                         box-shadow: none !important;
                         border: none !important;
-                        color: #ffffff !important;
+                        color: var(--plasma-text) !important;
                     }
                     /* Emoji Reaction Pills */
                     span.msg-reactions-bubble {
-                        background: rgba(255, 0, 255, 0.20) !important;
+                        background-color: rgba(var(--plasma-visited-rgb), 0.20) !important;
+                        background-image: none !important;
                         box-shadow: none !important;
                         border: none !important;
                     }
@@ -291,17 +337,19 @@ PlasmoidItem {
                     }
                     /* Compose Input Box - Edgeless Translucent Glass */
                     div.input-box {
-                        background: rgba(0, 255, 0, 0.08) !important;
-                        background-color: rgba(0, 255, 0, 0.08) !important;
+                        background-color: rgba(var(--plasma-accent-rgb), 0.08) !important;
+                        background-image: none !important;
                         box-shadow: none !important;
                         border: none !important;
                     }
                     button.send-button {
-                        background: rgba(0, 255, 0, 0.16) !important;
+                        background-color: rgba(var(--plasma-accent-rgb), 0.16) !important;
+                        background-image: none !important;
                     }
                     button.send-button::after,
                     .mdc-icon-button__ripple::before {
-                        background: transparent !important;
+                        background-color: transparent !important;
+                        background-image: none !important;
                     }
                     `;
                     const js = `
@@ -356,6 +404,8 @@ PlasmoidItem {
                             /* 3. Dynamic 2D Cutout Mask for Popups/Menus/Emoji Pickers */
                             const mainContainer = document.querySelector('mw-main-container');
                             if (mainContainer) {
+                                const vw = window.innerWidth;
+                                const vh = window.innerHeight;
                                 const overlays = Array.from(document.querySelectorAll(
                                     '.cdk-overlay-pane, mws-picker-wrapper > *, [role="menu"], [role="dialog"]'
                                 )).filter(el => {
@@ -363,9 +413,7 @@ PlasmoidItem {
                                     return r.width > 10 && r.height > 10 && window.getComputedStyle(el).visibility !== 'hidden' && window.getComputedStyle(el).opacity !== '0';
                                 });
 
-                                if (overlays.length > 0) {
-                                    const vw = window.innerWidth;
-                                    const vh = window.innerHeight;
+                                if (overlays.length > 0 && vw > 50 && vh > 50) {
                                     let rects = '';
                                     overlays.forEach(el => {
                                         const r = el.getBoundingClientRect();

@@ -34,6 +34,27 @@ PlasmoidItem {
         property int savedTrayW: 0
         property int savedTrayH: 0
         property bool isActiveInPopup: false
+
+        SystemPalette {
+            id: activePalette
+            colorGroup: SystemPalette.Active
+            onWindowTextChanged: if (webviewLoader.item) webviewLoader.item.injectThemeCss()
+            onHighlightChanged: if (webviewLoader.item) webviewLoader.item.injectThemeCss()
+        }
+        Item {
+            id: themeProbe
+            Kirigami.Theme.colorSet: Kirigami.Theme.Window
+            Kirigami.Theme.inherit: false
+            Connections {
+                target: themeProbe.Kirigami.Theme
+                function onTextColorChanged() { if (webviewLoader.item) webviewLoader.item.injectThemeCss() }
+                function onHighlightColorChanged() { if (webviewLoader.item) webviewLoader.item.injectThemeCss() }
+                function onLinkColorChanged() { if (webviewLoader.item) webviewLoader.item.injectThemeCss() }
+                function onNegativeTextColorChanged() { if (webviewLoader.item) webviewLoader.item.injectThemeCss() }
+                function onDefaultFontChanged() { if (webviewLoader.item) webviewLoader.item.injectThemeCss() }
+            }
+        }
+
         function findTrayRootItem() {
             let node = musicRoot.parent;
             let lastItem = null;
@@ -64,6 +85,7 @@ PlasmoidItem {
             if (Plasmoid.configuration.popupWidth > 0 && Plasmoid.configuration.popupHeight > 0) {
                 setPopupSize(win, Plasmoid.configuration.popupWidth, Plasmoid.configuration.popupHeight);
             }
+            if (webviewLoader.item) webviewLoader.item.injectThemeCss();
         }
         function onClose() {
             if (!isActiveInPopup) return;
@@ -114,9 +136,34 @@ PlasmoidItem {
                 url: "https://music.youtube.com"
                 profile: WebEngine.defaultProfile
                 backgroundColor: "transparent"
+                function toRgbStr(c) {
+                    return `${Math.round(c.r * 255)}, ${Math.round(c.g * 255)}, ${Math.round(c.b * 255)}`;
+                }
                 function injectThemeCss() {
+                    const textColor = activePalette.windowText;
+                    const accentColor = activePalette.highlight;
+                    const secondaryColor = themeProbe.Kirigami.Theme.linkColor;
+                    const alertColor = themeProbe.Kirigami.Theme.negativeTextColor;
+                    const textHex = textColor.toString();
+                    const textRgb = toRgbStr(textColor);
+                    const accentHex = accentColor.toString();
+                    const accentRgb = toRgbStr(accentColor);
+                    const secondaryHex = secondaryColor.toString();
+                    const secondaryRgb = toRgbStr(secondaryColor);
+                    const alertHex = alertColor.toString();
+                    const alertRgb = toRgbStr(alertColor);
+                    const fontName = themeProbe.Kirigami.Theme.defaultFont.family;
                     const css = `
                     :root, html, body {
+                        --plasma-text: ${textHex};
+                        --plasma-text-rgb: ${textRgb};
+                        --plasma-accent: ${accentHex};
+                        --plasma-accent-rgb: ${accentRgb};
+                        --plasma-secondary: ${secondaryHex};
+                        --plasma-secondary-rgb: ${secondaryRgb};
+                        --plasma-alert: ${alertHex};
+                        --plasma-alert-rgb: ${alertRgb};
+                        --plasma-font: "${fontName}", sans-serif;
                         --ytmusic-background: transparent !important;
                         --ytmusic-general-background-a: transparent !important;
                         --ytmusic-general-background-b: transparent !important;
@@ -141,19 +188,19 @@ PlasmoidItem {
                         --yt-sys-color-baseline--raised-background: transparent !important;
                         --yt-sys-color-baseline--surface-container: transparent !important;
                         --yt-sys-color-baseline--menu-background: transparent !important;
-                        --yt-sys-color-baseline--text-primary: #ffffff !important;
-                        --yt-sys-color-baseline--text-secondary: #ffffff !important;
-                        --yt-sys-color-baseline--call-to-action: #00ff00 !important;
-                        --ytmusic-color-white1: #ffffff !important;
-                        --ytmusic-color-grey2: #ffffff !important;
-                        --ytmusic-color-grey3: #ffffff !important;
-                        --ytmusic-color-lightblue: #00ff00 !important;
-                        --ytmusic-brand-link-text: #00ff00 !important;
-                        --ytmusic-playback-progress-color: #00ff00 !important;
-                        --ytmusic-badge-chip-background: rgba(0, 0, 255, 0.16) !important;
-                        --ytmusic-badge-chip-inactive-hover: rgba(0, 255, 0, 0.20) !important;
-                        --ytmusic-search-suggestion-focus-active-background: rgba(0, 255, 0, 0.16) !important;
-                        --ytmusic-menu-item-hover-background-color: rgba(0, 255, 0, 0.16) !important;
+                        --yt-sys-color-baseline--text-primary: var(--plasma-text) !important;
+                        --yt-sys-color-baseline--text-secondary: var(--plasma-text) !important;
+                        --yt-sys-color-baseline--call-to-action: var(--plasma-accent) !important;
+                        --ytmusic-color-white1: var(--plasma-text) !important;
+                        --ytmusic-color-grey2: var(--plasma-text) !important;
+                        --ytmusic-color-grey3: var(--plasma-text) !important;
+                        --ytmusic-color-lightblue: var(--plasma-accent) !important;
+                        --ytmusic-brand-link-text: var(--plasma-accent) !important;
+                        --ytmusic-playback-progress-color: var(--plasma-accent) !important;
+                        --ytmusic-badge-chip-background: rgba(var(--plasma-secondary-rgb), 0.16) !important;
+                        --ytmusic-badge-chip-inactive-hover: rgba(var(--plasma-accent-rgb), 0.20) !important;
+                        --ytmusic-search-suggestion-focus-active-background: rgba(var(--plasma-accent-rgb), 0.16) !important;
+                        --ytmusic-menu-item-hover-background-color: rgba(var(--plasma-accent-rgb), 0.16) !important;
                         background: transparent !important;
                         background-color: transparent !important;
                         height: 100vh !important;
@@ -161,8 +208,8 @@ PlasmoidItem {
                     }
                     body, input, button, yt-formatted-string, span, a, div,
                     .title, .subtitle, .byline, .time-info {
-                        font-family: "Noto Sans", sans-serif !important;
-                        color: #ffffff !important;
+                        font-family: var(--plasma-font) !important;
+                        color: var(--plasma-text) !important;
                     }
                     /* Content Scroller with Top & Bottom Fade Masks for Nav Bar & Player Bar */
                     ytmusic-app-layout > #content {
@@ -264,9 +311,10 @@ PlasmoidItem {
                     #background-gradient.ytmusic-browse-response {
                     display: none !important;
                     }
-                    /* Player Bar & Search Box -> Edgeless Translucent Green Glass */
+                    /* Player Bar & Search Box -> Edgeless Translucent Accent Glass */
                     ytmusic-player-bar {
-                        background: rgba(0, 255, 0, 0.08) !important;
+                        background-color: rgba(var(--plasma-accent-rgb), 0.08) !important;
+                        background-image: none !important;
                         border-radius: 20px !important;
                         margin: 0 12px 10px 12px !important;
                         width: calc(100% - 24px) !important;
@@ -275,36 +323,42 @@ PlasmoidItem {
                         border: none !important;
                     }
                     .search-box.ytmusic-search-box {
-                        background: rgba(0, 255, 0, 0.08) !important;
+                        background-color: rgba(var(--plasma-accent-rgb), 0.08) !important;
+                        background-image: none !important;
                         border-radius: 24px !important;
                         border: none !important;
                         box-shadow: none !important;
                     }
-                    /* Guide Active Entry & Filter Chips */
+                    /* Guide Active Entry, New Playlist Button & Filter Chips */
                     tp-yt-paper-item.ytmusic-guide-entry-renderer {
-                        background: transparent !important;
+                        background-color: transparent !important;
+                        background-image: none !important;
                         border-radius: 12px !important;
                     }
                     ytmusic-guide-entry-renderer[active] tp-yt-paper-item,
-                    tp-yt-paper-item.ytmusic-guide-entry-renderer:hover {
-                        background: rgba(0, 255, 0, 0.16) !important;
+                    tp-yt-paper-item.ytmusic-guide-entry-renderer:hover,
+                    button.ytSpecButtonShapeNextHost {
+                        background-color: rgba(var(--plasma-accent-rgb), 0.16) !important;
+                        background-image: none !important;
                     }
                     a.ytmusic-chip-cloud-chip-renderer {
-                        background: rgba(0, 0, 255, 0.16) !important;
+                        background-color: rgba(var(--plasma-secondary-rgb), 0.16) !important;
+                        background-image: none !important;
                         border-radius: 8px !important;
                     }
                     ytmusic-chip-cloud-chip-renderer[is-selected] a.ytmusic-chip-cloud-chip-renderer,
                     a.ytmusic-chip-cloud-chip-renderer:hover {
-                        background: rgba(0, 255, 0, 0.22) !important;
+                        background-color: rgba(var(--plasma-accent-rgb), 0.22) !important;
+                        background-image: none !important;
                     }
-                    /* Progress Bar -> Pure Green & Red RGB */
+                    /* Progress Bar -> Plasma Accent & Alert */
                     #primaryProgress.tp-yt-paper-progress {
-                    background: #00ff00 !important;
-                    background-image: linear-gradient(90deg, #00ff00 80%, #ff0000 100%) !important;
+                    background-color: var(--plasma-accent) !important;
+                    background-image: linear-gradient(90deg, var(--plasma-accent) 80%, var(--plasma-alert) 100%) !important;
                     }
                     .slider-knob-inner.tp-yt-paper-slider {
-                        background: #00ff00 !important;
-                        border-color: #00ff00 !important;
+                        background-color: var(--plasma-accent) !important;
+                        border-color: var(--plasma-accent) !important;
                     }
                     `;
                     const js = `
@@ -323,7 +377,6 @@ PlasmoidItem {
                             const layout = document.querySelector('ytmusic-app-layout');
                             if (!layout) return;
 
-                            /* Find open search suggestion dropdown, action menus, or player page */
                             const overlays = Array.from(document.querySelectorAll(
                                 'ytmusic-search-box[opened] #suggestion-list, ytmusic-popup-container tp-yt-iron-dropdown:not([aria-hidden="true"]), ytmusic-player-page[open]'
                             )).filter(el => {
@@ -335,8 +388,8 @@ PlasmoidItem {
 
                             const browsePage = document.querySelector('#browse-page, ytmusic-search-page');
                             if (browsePage) {
-                                if (overlays.length > 0) {
-                                    const br = browsePage.getBoundingClientRect();
+                                const br = browsePage.getBoundingClientRect();
+                                if (overlays.length > 0 && br.width > 50 && br.height > 50) {
                                     let rects = '';
                                     overlays.forEach(el => {
                                         const r = el.getBoundingClientRect();
@@ -376,6 +429,7 @@ PlasmoidItem {
                     }
                 }
                 settings {
+                    javascriptCanAccessClipboard: true
                     allowRunningInsecureContent: false
                     accelerated2dCanvasEnabled: true
                     webGLEnabled: true

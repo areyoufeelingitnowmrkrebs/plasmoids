@@ -13,6 +13,33 @@ Item {
     Layout.minimumHeight: Kirigami.Units.gridUnit * 20
     Layout.preferredWidth: 1200
     Layout.preferredHeight: 800
+
+    SystemPalette {
+        id: activePalette
+        colorGroup: SystemPalette.Active
+        onWindowTextChanged: if (webviewLoader.item) webviewLoader.item.injectThemeCss()
+        onHighlightChanged: if (webviewLoader.item) webviewLoader.item.injectThemeCss()
+    }
+    Item {
+        id: themeProbe
+        Kirigami.Theme.colorSet: Kirigami.Theme.Window
+        Kirigami.Theme.inherit: false
+        Connections {
+            target: themeProbe.Kirigami.Theme
+            function onTextColorChanged() { if (webviewLoader.item) webviewLoader.item.injectThemeCss() }
+            function onHighlightColorChanged() { if (webviewLoader.item) webviewLoader.item.injectThemeCss() }
+            function onLinkColorChanged() { if (webviewLoader.item) webviewLoader.item.injectThemeCss() }
+            function onNegativeTextColorChanged() { if (webviewLoader.item) webviewLoader.item.injectThemeCss() }
+            function onDefaultFontChanged() { if (webviewLoader.item) webviewLoader.item.injectThemeCss() }
+        }
+    }
+
+    onVisibleChanged: {
+        if (visible && webviewLoader.item) {
+            Qt.callLater(webviewLoader.item.injectThemeCss);
+        }
+    }
+
     Component.onCompleted: {
         if (WebEngine.defaultProfile.storageName !== "Google") {
             WebEngine.defaultProfile.storageName = "Google"
@@ -69,9 +96,34 @@ Item {
             url: "https://calendar.google.com/r"
             profile: WebEngine.defaultProfile
             backgroundColor: "transparent"
+            function toRgbStr(c) {
+                return `${Math.round(c.r * 255)}, ${Math.round(c.g * 255)}, ${Math.round(c.b * 255)}`;
+            }
             function injectThemeCss() {
+                const textColor = activePalette.windowText;
+                const accentColor = activePalette.highlight;
+                const secondaryColor = themeProbe.Kirigami.Theme.linkColor;
+                const alertColor = themeProbe.Kirigami.Theme.negativeTextColor;
+                const textHex = textColor.toString();
+                const textRgb = toRgbStr(textColor);
+                const accentHex = accentColor.toString();
+                const accentRgb = toRgbStr(accentColor);
+                const secondaryHex = secondaryColor.toString();
+                const secondaryRgb = toRgbStr(secondaryColor);
+                const alertHex = alertColor.toString();
+                const alertRgb = toRgbStr(alertColor);
+                const fontName = themeProbe.Kirigami.Theme.defaultFont.family;
                 const css = `
                 :root, html, body {
+                    --plasma-text: ${textHex};
+                    --plasma-text-rgb: ${textRgb};
+                    --plasma-accent: ${accentHex};
+                    --plasma-accent-rgb: ${accentRgb};
+                    --plasma-secondary: ${secondaryHex};
+                    --plasma-secondary-rgb: ${secondaryRgb};
+                    --plasma-alert: ${alertHex};
+                    --plasma-alert-rgb: ${alertRgb};
+                    --plasma-font: "${fontName}", sans-serif;
                     --gm3-sys-color-background: transparent !important;
                     --gm3-sys-color-surface: transparent !important;
                     --gm3-sys-color-surface-dim: transparent !important;
@@ -84,34 +136,34 @@ Item {
                     --gm3-sys-color-surface-variant: transparent !important;
                     --gm3-menu-surface-container-color: transparent !important;
                     --gm3-select-shared-menu-container-color: transparent !important;
-                    --gm3-autocomplete-filled-text-field-container-color: rgba(0, 255, 0, 0.08) !important;
-                    --gm3-text-field-filled-container-color: rgba(0, 255, 0, 0.08) !important;
-                    --gm3-select-filled-text-field-container-color: rgba(0, 255, 0, 0.08) !important;
-                    --gm3-sys-color-on-background: #ffffff !important;
-                    --gm3-sys-color-on-surface: #ffffff !important;
-                    --gm3-sys-color-on-surface-variant: #ffffff !important;
-                    --gm3-sys-color-primary: #00ff00 !important;
-                    --gm3-sys-color-primary-container: rgba(0, 255, 0, 0.20) !important;
-                    --gm3-sys-color-on-primary: #ffffff !important;
-                    --gm3-sys-color-on-primary-container: #ffffff !important;
-                    --gm3-sys-color-secondary: #0000ff !important;
-                    --gm3-sys-color-secondary-container: rgba(0, 0, 255, 0.22) !important;
-                    --gm3-sys-color-on-secondary: #ffffff !important;
-                    --gm3-sys-color-on-secondary-container: #ffffff !important;
-                    --gm3-sys-color-tertiary: #ff0000 !important;
-                    --gm3-sys-color-tertiary-container: rgba(255, 0, 0, 0.20) !important;
+                    --gm3-autocomplete-filled-text-field-container-color: rgba(var(--plasma-accent-rgb), 0.08) !important;
+                    --gm3-text-field-filled-container-color: rgba(var(--plasma-accent-rgb), 0.08) !important;
+                    --gm3-select-filled-text-field-container-color: rgba(var(--plasma-accent-rgb), 0.08) !important;
+                    --gm3-sys-color-on-background: var(--plasma-text) !important;
+                    --gm3-sys-color-on-surface: var(--plasma-text) !important;
+                    --gm3-sys-color-on-surface-variant: var(--plasma-text) !important;
+                    --gm3-sys-color-primary: var(--plasma-accent) !important;
+                    --gm3-sys-color-primary-container: rgba(var(--plasma-accent-rgb), 0.20) !important;
+                    --gm3-sys-color-on-primary: var(--plasma-text) !important;
+                    --gm3-sys-color-on-primary-container: var(--plasma-text) !important;
+                    --gm3-sys-color-secondary: var(--plasma-secondary) !important;
+                    --gm3-sys-color-secondary-container: rgba(var(--plasma-secondary-rgb), 0.22) !important;
+                    --gm3-sys-color-on-secondary: var(--plasma-text) !important;
+                    --gm3-sys-color-on-secondary-container: var(--plasma-text) !important;
+                    --gm3-sys-color-tertiary: var(--plasma-alert) !important;
+                    --gm3-sys-color-tertiary-container: rgba(var(--plasma-alert-rgb), 0.20) !important;
                     --gm3-sys-color-outline: transparent !important;
                     --gm3-sys-color-outline-variant: transparent !important;
-                    --cal-sys-color-now-indicator: #ff0000 !important;
+                    --cal-sys-color-now-indicator: var(--plasma-alert) !important;
                     --dt-background: transparent !important;
                     --dt-surface: transparent !important;
-                    --gm3-autocomplete-filled-menu-list-item-label-text-font: "Noto Sans", sans-serif !important;
-                    --gm3-autocomplete-outlined-menu-list-item-label-text-font: "Noto Sans", sans-serif !important;
-                    --gm3-autocomplete-outlined-text-field-input-text-font: "Noto Sans", sans-serif !important;
-                    --gm3-menu-list-item-label-text-font: "Noto Sans", sans-serif !important;
-                    --gm3-menu-list-item-supporting-text-font: "Noto Sans", sans-serif !important;
-                    --gm3-menu-list-item-trailing-supporting-text-font: "Noto Sans", sans-serif !important;
-                    --gm3-menu-group-title-text-font: "Noto Sans", sans-serif !important;
+                    --gm3-autocomplete-filled-menu-list-item-label-text-font: var(--plasma-font) !important;
+                    --gm3-autocomplete-outlined-menu-list-item-label-text-font: var(--plasma-font) !important;
+                    --gm3-autocomplete-outlined-text-field-input-text-font: var(--plasma-font) !important;
+                    --gm3-menu-list-item-label-text-font: var(--plasma-font) !important;
+                    --gm3-menu-list-item-supporting-text-font: var(--plasma-font) !important;
+                    --gm3-menu-list-item-trailing-supporting-text-font: var(--plasma-font) !important;
+                    --gm3-menu-group-title-text-font: var(--plasma-font) !important;
                     background: transparent !important;
                     background-color: transparent !important;
                 }
@@ -119,8 +171,8 @@ Item {
                 h1, h2, h3, h4, p, a, th, td,
                 span:not(.google-material-icons):not(.notranslate),
                 div:not(.google-material-icons):not(.notranslate) {
-                    font-family: "Noto Sans", sans-serif !important;
-                    color: #ffffff !important;
+                    font-family: var(--plasma-font) !important;
+                    color: var(--plasma-text) !important;
                 }
                 body > div,
                 header,
@@ -141,22 +193,20 @@ Item {
                 [data-modal="true"],
                 .eU5T0b, .tEhMVd, .pSp5K, .KKOvEb, .SGWAac, .lYYbjc, .K2fuAf, .RAaXne,
                 .QQYuzf, .YO50ue, .LXjtcc, .hEtGGf, .dOqRGf, .tB5Jxf-xl07Ob-XxIAqe, .aqdrmf-rymPhb {
-                    background: transparent !important;
                     background-color: transparent !important;
                     background-image: none !important;
                     box-shadow: none !important;
                     border-color: transparent !important;
                 }
-                /* Strip Opaque Pseudo-Elements (including Drawer right-gradient .hEtGGf::after & shadows) */
+                /* Strip Opaque Pseudo-Elements */
                 .hEtGGf::before, .hEtGGf::after,
                 .MMvswb::before, .MMvswb::after,
                 .UTNHae::before, .UTNHae::after {
-                    background: transparent !important;
                     background-color: transparent !important;
                     background-image: none !important;
                     box-shadow: none !important;
                 }
-                /* Create Button, Active View Switcher, Today Badge -> Translucent Green (#00ff00) */
+                /* Create Button, Active View Switcher, Today Badge -> Translucent Accent */
                 div.dwlvNd.Hrn1mc,
                 button.t9Sj3d-BIzmGd,
                 button.gPr58d,
@@ -164,48 +214,48 @@ Item {
                 button.AeBiU-LgbsSe,
                 h2.F262Ye,
                 button.sOjuj[aria-label*="today" i] {
-                    background: rgba(0, 255, 0, 0.16) !important;
-                    background-color: rgba(0, 255, 0, 0.16) !important;
+                    background-color: rgba(var(--plasma-accent-rgb), 0.16) !important;
+                    background-image: none !important;
                     box-shadow: none !important;
                     border: none !important;
-                    color: #ffffff !important;
+                    color: var(--plasma-text) !important;
                 }
                 /* Search for People Box in Drawer */
                 div.J09ahd.TanRXd,
                 div.Fgl6fe-fmcmS-yrriRe {
-                    background: rgba(0, 255, 0, 0.08) !important;
-                    background-color: rgba(0, 255, 0, 0.08) !important;
+                    background-color: rgba(var(--plasma-accent-rgb), 0.08) !important;
+                    background-image: none !important;
                     border-radius: 12px !important;
                 }
-                /* Event Chips -> High-Transparency Edgeless RGB */
+                /* Event Chips -> High-Transparency Edgeless Secondary/Accent */
                 [data-eventchip] > div,
                 div.KF4T6b {
-                    background: rgba(0, 0, 255, 0.22) !important;
-                    background-color: rgba(0, 0, 255, 0.22) !important;
+                    background-color: rgba(var(--plasma-secondary-rgb), 0.22) !important;
+                    background-image: none !important;
                     box-shadow: none !important;
                     border: none !important;
                     border-radius: 6px !important;
                 }
                 [data-eventchip]:hover > div,
                 div.KF4T6b:hover {
-                    background: rgba(0, 255, 0, 0.25) !important;
-                    background-color: rgba(0, 255, 0, 0.25) !important;
+                    background-color: rgba(var(--plasma-accent-rgb), 0.25) !important;
+                    background-image: none !important;
                 }
-                /* Event Chip Color Dots & Checkboxes -> Pure RGB (#ff0000 / #00ff00 / #0000ff) */
+                /* Event Chip Color Dots & Checkboxes -> Plasma Accent / Alert */
                 div.VlNR9e {
-                    border-color: #00ff00 !important;
+                    border-color: var(--plasma-accent) !important;
                 }
                 span.CPXyj {
-                    background-color: #ff0000 !important;
+                    background-color: var(--plasma-alert) !important;
                 }
                 div.KGC9Kd-YQoJzd {
-                    background-color: rgba(0, 255, 0, 0.30) !important;
-                    border-color: #00ff00 !important;
+                    background-color: rgba(var(--plasma-accent-rgb), 0.30) !important;
+                    border-color: var(--plasma-accent) !important;
                 }
                 /* Menu Item Hover */
                 [role="menuitem"]:hover, [role="menuitemcheckbox"]:hover, [role="option"]:hover {
-                    background: rgba(0, 255, 0, 0.16) !important;
-                    background-color: rgba(0, 255, 0, 0.16) !important;
+                    background-color: rgba(var(--plasma-accent-rgb), 0.16) !important;
+                    background-image: none !important;
                     border-radius: 8px !important;
                 }
                 `;
@@ -222,7 +272,6 @@ Item {
                     let rafId = null;
                     function updateCalendarMasks() {
                         rafId = null;
-                        /* 1. Drawer Scroller Top Fade Behind Floating "Create" Button */
                         const drawerScroller = document.querySelector('.hEtGGf.HDIIVe');
                         if (drawerScroller) {
                             const fade = 'linear-gradient(to bottom, transparent 0px, black 14px, black 100%)';
@@ -230,9 +279,14 @@ Item {
                             drawerScroller.style.setProperty('mask-image', fade, 'important');
                         }
 
-                        /* 2. Dynamic 2D Cutout Mask on Calendar Grid & Drawer Behind Open Menus / Event Popovers / Create Button */
                         const mainArea = document.querySelector('.SGWAac');
                         if (mainArea) {
+                            const mr = mainArea.getBoundingClientRect();
+                            if (mr.width < 50 || mr.height < 50) {
+                                mainArea.style.removeProperty('-webkit-mask-image');
+                                mainArea.style.removeProperty('mask-image');
+                                return;
+                            }
                             const createBtn = document.querySelector('.dwlvNd.Hrn1mc');
                             const popups = Array.from(document.querySelectorAll(
                                 '[role="dialog"], [role="menu"], [role="listbox"], [data-modal="true"]'
@@ -249,7 +303,6 @@ Item {
                             }
 
                             if (popups.length > 0) {
-                                const mr = mainArea.getBoundingClientRect();
                                 let rects = '';
                                 popups.forEach(el => {
                                     const r = el.getBoundingClientRect();
